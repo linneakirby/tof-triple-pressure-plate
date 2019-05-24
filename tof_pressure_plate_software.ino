@@ -53,7 +53,7 @@ void loop() {
   myDistance.takeMeasurement(); //Tell sensor to take measurement
 
   unsigned int distance = myDistance.getDistance(); //Retrieve the distance value
-  int intensity = map(distance, 75, 2045, 0, 255); //can we initialize this in the setup so we don't have to repeat?
+  int intensity = map(distance, 75, 2048, 50, 255); //can we initialize this in the setup so we don't have to repeat?
 
   Serial.print("distance: ");
   Serial.print(distance);
