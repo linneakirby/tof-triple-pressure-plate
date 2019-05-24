@@ -18,6 +18,7 @@ CRGB leds[NUM_LEDS];
 
 
 #define UPDATES_PER_SECOND 100
+#define PLATE_THRESHOLD 500
 
 CRGBPalette16 currentPalette;
 TBlendType    currentBlending;
@@ -50,6 +51,19 @@ const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM = {
 #define POWER_UP_DELAY_MILLIS 3000
 #define DATA_RATE_BAUD        9600
 
+int plate0 = 0;
+int plate1 = 0;
+int plate2 = 0;
+
+int red = 0;
+int green = 0;
+int blue = 0;
+enum class ColorSelector {
+  Red = 0,
+  Green = 1,
+  Blue = 2,
+};
+
 void setup() {
   delay(POWER_UP_DELAY_MILLIS);
   Serial.begin(DATA_RATE_BAUD);
@@ -77,14 +91,14 @@ void loop() {
   unsigned int distance = myDistance.getDistance(); //Retrieve the distance value
   int intensity = map(distance, 75, 2048, 75, 255); //can we initialize this in the setup so we don't have to repeat?
 
-  Serial.print("distance: ");
-  Serial.print(distance);
-  Serial.print("mm ");
-  Serial.print("intensity: ");
-  Serial.print(intensity);
-  Serial.println(); // these lines print the distance and scaled value of distance to 0-255 for brightness*/
+//  Serial.print("distance: ");
+//  Serial.print(distance);
+//  Serial.print("mm ");
+//  Serial.print("intensity: ");
+//  Serial.print(intensity);
+//  Serial.println(); // these lines print the distance and scaled value of distance to 0-255 for brightness*/
 
-  ChangePalettePeriodically();
+//  ChangePalettePeriodically();
 
   static uint8_t startIndex = 0;
   startIndex = startIndex + 1; /* motion speed */
@@ -93,6 +107,16 @@ void loop() {
 
   FastLED.show();
   FastLED.delay(1000 / UPDATES_PER_SECOND);
+
+  plate0 = analogRead(A0);
+  plate1 = analogRead(A1);
+  plate2 = analogRead(A2);
+
+  Serial.println(plate0);
+  if (plate0 < PLATE_THRESHOLD) {
+    Serial.println("on!"); 
+  }//  Serial.println(plate1);
+//  Serial.println(plate2);
 }
 
 void FillLEDsFromPaletteColors( uint8_t colorIndex) {
