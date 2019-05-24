@@ -103,7 +103,7 @@ void loop() {
     Serial.println("Increasing color.");
     rgb[color_selector] = constrain(rgb[color_selector] + 1, 0, 255);
   }
-  
+
   FillLEDsFromPaletteColors();
   unsigned int distance = distance_sensor.getDistance(); //Retrieve the distance value
   uint8_t brightness = map(distance, 75, 2045, 0, 255); //may need to adjust parameters 2 and 3 to find appropriate range
