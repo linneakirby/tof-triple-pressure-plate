@@ -25,12 +25,12 @@ TBlendType    currentBlending;
 extern CRGBPalette16 myRedWhiteBluePalette;
 extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
 
-const int kPowerUpDelayMillis = 3000;
-const int kDataRateBaud = 9600;
+#define POWER_UP_DELAY_MILLIS 3000
+#define DATA_RATE_BAUD        9600
 
 void setup() {
-  delay(kPowerUpDelayMillis);
-  Serial.begin(kDataRateBaud);
+  delay(POWER_UP_DELAY_MILLIS);
+  Serial.begin(DATA_RATE_BAUD);
   while (!Serial);
   Serial.println("RFD77402 Read Example:");
 
