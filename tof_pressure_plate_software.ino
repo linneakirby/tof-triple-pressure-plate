@@ -6,8 +6,9 @@
   from the FAST LEDs Library Example Patch. */
 
 #include <FastLED.h>
+#include <pixeltypes.h>
 #include <SparkFun_RFD77402_Arduino_Library.h> //Use Library Manager or download here: https://github.com/sparkfun/SparkFun_RFD77402_Arduino_Library
-RFD77402 myDistance; //Hook object to the library
+RFD77402 distance_sensor; //Hook object to the library
 
 #define LED_PIN     5
 #define NUM_LEDS    300
@@ -51,18 +52,15 @@ const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM = {
 #define POWER_UP_DELAY_MILLIS 3000
 #define DATA_RATE_BAUD        9600
 
+int intensity = 255;
+unsigned int distance = 0;
+
 int plate0 = 0;
 int plate1 = 0;
 int plate2 = 0;
 
-int red = 0;
-int green = 0;
-int blue = 0;
-enum class ColorSelector {
-  Red = 0,
-  Green = 1,
-  Blue = 2,
-};
+int rgb[3];
+int color_selector = 0;
 
 void setup() {
   delay(POWER_UP_DELAY_MILLIS);
@@ -70,7 +68,7 @@ void setup() {
   while (!Serial);
   Serial.println("RFD77402 Read Example:");
 
-  if (myDistance.begin() == false)
+  if (distance_sensor.begin() == false)
   {
     Serial.println("Sensor failed to initialize. Check wiring.");
     while (1); //Freeze!
@@ -86,27 +84,7 @@ void setup() {
 
 
 void loop() {
-  myDistance.takeMeasurement(); //Tell sensor to take measurement
-
-  unsigned int distance = myDistance.getDistance(); //Retrieve the distance value
-  int intensity = map(distance, 75, 2048, 75, 255); //can we initialize this in the setup so we don't have to repeat?
-
-//  Serial.print("distance: ");
-//  Serial.print(distance);
-//  Serial.print("mm ");
-//  Serial.print("intensity: ");
-//  Serial.print(intensity);
-//  Serial.println(); // these lines print the distance and scaled value of distance to 0-255 for brightness*/
-
-//  ChangePalettePeriodically();
-
-  static uint8_t startIndex = 0;
-  startIndex = startIndex + 1; /* motion speed */
-
-  FillLEDsFromPaletteColors( startIndex);
-
-  FastLED.show();
-  FastLED.delay(1000 / UPDATES_PER_SECOND);
+  distance_sensor.takeMeasurement();
 
   plate0 = analogRead(A0);
   plate1 = analogRead(A1);
@@ -114,18 +92,29 @@ void loop() {
 
   Serial.println(plate0);
   if (plate0 < PLATE_THRESHOLD) {
-    Serial.println("on!"); 
-  }//  Serial.println(plate1);
-//  Serial.println(plate2);
+    Serial.println("Changing color.");
+    color_selector = (color_selector + 1) % 3;
+  }
+  if (plate1 < PLATE_THRESHOLD) {
+    Serial.println("Decreasing color.");
+    rgb[color_selector] = constrain(rgb[color_selector] - 1, 0, 255);
+  }
+  if (plate2 < PLATE_THRESHOLD) {
+    Serial.println("Increasing color.");
+    rgb[color_selector] = constrain(rgb[color_selector] + 1, 0, 255);
+  }
+  
+  FillLEDsFromPaletteColors();
+  unsigned int distance = distance_sensor.getDistance(); //Retrieve the distance value
+  uint8_t brightness = map(distance, 75, 2045, 0, 255); //may need to adjust parameters 2 and 3 to find appropriate range
+  FastLED.setBrightness(brightness);
+  FastLED.show();
+  FastLED.delay(1000 / UPDATES_PER_SECOND);
 }
 
-void FillLEDsFromPaletteColors( uint8_t colorIndex) {
-  unsigned int distance = myDistance.getDistance(); //Retrieve the distance value
-  uint8_t brightness = map(distance, 75, 2045, 0, 255); //may need to adjust parameters 2 and 3 to find appropriate range
-
-  for ( int i = 0; i < NUM_LEDS; i++) {
-    leds[i] = ColorFromPalette( currentPalette, colorIndex, brightness, currentBlending);
-    colorIndex += 3;
+void FillLEDsFromPaletteColors() {
+  for (int i = 0; i < NUM_LEDS; i++) {
+    leds[i] = CRGB(rgb[0], rgb[1], rgb[2]);
   }
 }
 
