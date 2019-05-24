@@ -19,33 +19,18 @@ CRGB leds[NUM_LEDS];
 
 #define UPDATES_PER_SECOND 100
 
-// This example shows several ways to set up and use 'palettes' of colors
-// with FastLED.
-//
-// These compact palettes provide an easy way to re-colorize your
-// animation on the fly, quickly, easily, and with low overhead.
-//
-// USING palettes is MUCH simpler in practice than in theory, so first just
-// run this sketch, and watch the pretty lights as you then read through
-// the code.  Although this sketch has eight (or more) different color schemes,
-// the entire sketch compiles down to about 6.5K on AVR.
-//
-// FastLED provides a few pre-configured color palettes, and makes it
-// extremely easy to make up your own color schemes with palettes.
-//
-// Some notes on the more abstract 'theory and practice' of
-// FastLED compact palettes are at the bottom of this file.
-
 CRGBPalette16 currentPalette;
 TBlendType    currentBlending;
 
 extern CRGBPalette16 myRedWhiteBluePalette;
 extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
 
+const int kPowerUpDelayMillis = 3000;
+const int kDataRateBaud = 9600;
 
 void setup() {
-  delay( 3000 ); // power-up safety delay
-  Serial.begin(9600);
+  delay(kPowerUpDelayMillis);
+  Serial.begin(kDataRateBaud);
   while (!Serial);
   Serial.println("RFD77402 Read Example:");
 
@@ -64,8 +49,7 @@ void setup() {
 }
 
 
-void loop()
-{
+void loop() {
   myDistance.takeMeasurement(); //Tell sensor to take measurement
 
   unsigned int distance = myDistance.getDistance(); //Retrieve the distance value
@@ -89,8 +73,7 @@ void loop()
   FastLED.delay(1000 / UPDATES_PER_SECOND);
 }
 
-void FillLEDsFromPaletteColors( uint8_t colorIndex)
-{
+void FillLEDsFromPaletteColors( uint8_t colorIndex) {
   unsigned int distance = myDistance.getDistance(); //Retrieve the distance value
   uint8_t brightness = map(distance, 75, 2045, 0, 255); //may need to adjust parameters 2 and 3 to find appropriate range
 
@@ -109,8 +92,7 @@ void FillLEDsFromPaletteColors( uint8_t colorIndex)
 // Additionally, you can manually define your own color palettes, or you can write
 // code that creates color palettes on the fly.  All are shown here.
 
-void ChangePalettePeriodically()
-{
+void ChangePalettePeriodically() {
   uint8_t secondHand = (millis() / 1000) % 60;
   static uint8_t lastSecond = 99;
 
@@ -164,8 +146,7 @@ void ChangePalettePeriodically()
 }
 
 // This function fills the palette with totally random colors.
-void SetupTotallyRandomPalette()
-{
+void SetupTotallyRandomPalette() {
   for ( int i = 0; i < 16; i++) {
     currentPalette[i] = CHSV( random8(), 255, random8());
   }
@@ -175,8 +156,7 @@ void SetupTotallyRandomPalette()
 // using code.  Since the palette is effectively an array of
 // sixteen CRGB colors, the various fill_* functions can be used
 // to set them up.
-void SetupBlackAndWhiteStripedPalette()
-{
+void SetupBlackAndWhiteStripedPalette() {
   // 'black out' all 16 palette entries...
   fill_solid( currentPalette, 16, CRGB::Black);
   // and set every fourth one to white.
@@ -188,8 +168,7 @@ void SetupBlackAndWhiteStripedPalette()
 }
 
 // This function sets up a palette of purple and green stripes.
-void SetupPurpleAndGreenPalette()
-{
+void SetupPurpleAndGreenPalette() {
   CRGB purple = CHSV( HUE_PURPLE, 255, 255);
   CRGB green  = CHSV( HUE_GREEN, 255, 255);
   CRGB black  = CRGB::Black;
@@ -206,8 +185,7 @@ void SetupPurpleAndGreenPalette()
 // which is stored in PROGMEM (flash), which is almost always more
 // plentiful than RAM.  A static PROGMEM palette like this
 // takes up 64 bytes of flash.
-const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM =
-{
+const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM = {
   CRGB::Red,
   CRGB::Gray, // 'white' is too bright compared to red and blue
   CRGB::Blue,
