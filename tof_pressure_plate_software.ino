@@ -19,6 +19,7 @@ RFD77402 distance_sensor; //Hook object to the library
 #define PLATE_THRESHOLD 500
 #define POWER_UP_DELAY_MILLIS 3000
 #define DATA_RATE_BAUD        9600
+#define COLOR_SELECTOR_MAX_CHARGE 7
 
 CRGB leds[NUM_LEDS];
 int intensity = 255;
@@ -30,6 +31,7 @@ int plate2 = 0;
 
 int rgb[3];
 int color_selector = 0;
+int color_selector_charge = 0;
 
 char* current_color(int color_selector) {
   if (color_selector == 0) {
@@ -60,20 +62,36 @@ void setup() {
   }
   Serial.println("Sensor online!");
 
-  FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
-  FastLED.setBrightness(  BRIGHTNESS );
+  FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  FastLED.setBrightness(BRIGHTNESS);
 }
 
 
 void loop() {
-  Serial.print("Current color is ");
+  Serial.print("Charge: ");
+  Serial.print(color_selector_charge);
+  Serial.print(" Current color is ");
   Serial.println(current_color(color_selector));
+
   distance_sensor.takeMeasurement();
   if (is_down(A0)) {
-    color_selector = (color_selector + 1) % 3;
-    Serial.print("Changed color to ");
-    Serial.println(current_color(color_selector));
+    // Active charge-up
+    if (color_selector_charge < COLOR_SELECTOR_MAX_CHARGE) {
+      color_selector_charge = color_selector_charge + 3;
+    } else {
+      // At this threshold, switch the color and reset the charge meter.
+      color_selector = (color_selector + 1) % 3;
+      Serial.print("Changed color to ");
+      Serial.println(current_color(color_selector));
+      color_selector_charge = 0;
+    }
+  } else {
+    // Passive cooldown
+    if (color_selector_charge > 0) {
+      color_selector_charge--;
+    }
   }
+
   if (is_down(A1)) {
     Serial.println("Decreasing color.");
     rgb[color_selector] = constrain(rgb[color_selector] - 1, 0, 255);
